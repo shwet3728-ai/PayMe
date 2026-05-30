@@ -1,0 +1,44 @@
+# dependencies
+
+node_modules
+
+# nextjs
+
+.next
+out
+
+# build
+
+dist
+build
+
+# env
+
+.env
+.env.local
+.env.production
+
+# logs
+
+logs
+*.log
+
+# coverage
+
+coverage
+
+# prisma
+
+prisma/dev.db
+
+# macOS
+
+.DS_Store
+
+# vscode
+
+.vscode
+
+# idea
+
+.idea

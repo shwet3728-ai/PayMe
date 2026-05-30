@@ -1,0 +1,136 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CUSTOMER
+  SHOP_OWNER
+  ADMIN
+}
+
+model User {
+  id    String   @id @default(cuid())
+  phone String   @unique
+  name  String?
+  role  UserRole @default(CUSTOMER)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  otpRecords OtpVerification[]
+  shops      Shop[]
+  orders     Order[]
+
+  @@map("users")
+}
+
+model OtpVerification {
+  id        String   @id @default(cuid())
+  phone     String
+  otp       String
+  verified  Boolean  @default(false)
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+
+  @@map("otp_verifications")
+}
+
+model Shop {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id])
+
+  products Product[]
+  orders   Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("shops")
+}
+
+model Product {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  isAvailable Boolean @default(true)
+
+  shopId String
+  shop   Shop   @relation(fields: [shopId], references: [id])
+
+  orderItems OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("products")
+}
+
+model Order {
+  id     String @id @default(cuid())
+  status String @default("PENDING")
+
+  customerId String
+  customer   User   @relation(fields: [customerId], references: [id])
+
+  shopId String
+  shop   Shop   @relation(fields: [shopId], references: [id])
+
+  totalAmount Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items OrderItem[]
+
+  payment Payment?
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id String @id @default(cuid())
+
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  quantity Int
+  price    Float
+
+  @@map("order_items")
+}
+
+model Payment {
+  id String @id @default(cuid())
+
+  orderId String @unique
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  amount Float
+
+  razorpayOrderId   String?
+  razorpayPaymentId String?
+
+  status String @default("PENDING")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("payments")
+}

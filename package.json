@@ -1,0 +1,20 @@
+{
+"name": "payme",
+"version": "1.0.0",
+"private": true,
+"workspaces": [
+"apps/*",
+"services/*",
+"packages/*"
+],
+"scripts": {
+"dev": "turbo dev",
+"build": "turbo build",
+"lint": "turbo lint",
+"format": "prettier --write ."
+},
+"devDependencies": {
+"prettier": "^3.3.3",
+"turbo": "^2.0.12"
+}
+}
