@@ -3,48 +3,42 @@ import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class ShopsService {
-  constructor(
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async createShop(
-    ownerId: string,
-    name: string,
-    description?: string,
-  ) {
-    const shop =
-      await this.prisma.shop.create({
-        data: {
-          ownerId,
-          name,
-          description,
-        },
-      });
+  // 🟢 ONLY ONE SHOP PER USER
+  async createShop(ownerId: string, name: string, description: string) {
+    const existingShop = await this.prisma.shop.findFirst({
+      where: { ownerId },
+    });
 
-    return {
-      success: true,
-      shop,
-    };
-  }
+    if (existingShop) {
+      return {
+        success: false,
+        message: 'User already has a shop',
+        shop: existingShop,
+      };
+    }
 
-  async getAllShops() {
-    return this.prisma.shop.findMany({
-      orderBy: {
-        createdAt: 'desc',
+    return this.prisma.shop.create({
+      data: {
+        ownerId,
+        name,
+        description,
       },
     });
   }
 
-  async getShopById(
-    shopId: string,
-  ) {
+  async getMyShops(ownerId: string) {
+    const shop = await this.prisma.shop.findFirst({
+      where: { ownerId },
+    });
+
+    return shop ? [shop] : [];
+  }
+
+  async getShopById(shopId: string) {
     return this.prisma.shop.findUnique({
-      where: {
-        id: shopId,
-      },
-      include: {
-        products: true,
-      },
+      where: { id: shopId },
     });
   }
 }
