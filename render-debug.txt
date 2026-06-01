@@ -1,0 +1,81 @@
+===== ROOT PACKAGE.JSON =====
+{
+"name": "payme",
+"version": "1.0.0",
+"private": true,
+"workspaces": [
+"apps/*",
+"services/*",
+"packages/*"
+],
+"scripts": {
+"dev": "turbo dev",
+"build": "turbo build",
+"lint": "turbo lint",
+"format": "prettier --write ."
+},
+"devDependencies": {
+"prettier": "^3.3.3",
+"turbo": "^2.0.12"
+}
+}
+
+===== API PACKAGE.JSON =====
+{
+  "name": "@payme/api",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "nest start",
+    "start:dev": "nest start --watch",
+    "build": "nest build"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/config": "^4.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/jwt": "^11.0.2",
+    "@nestjs/passport": "^11.0.5",
+    "@nestjs/platform-express": "^11.0.0",
+    "@prisma/client": "^6.0.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
+    "qrcode": "^1.5.4",
+    "razorpay": "^2.9.6",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.0",
+    "@types/node": "^25.9.1",
+    "@types/passport-jwt": "^4.0.1",
+    "prisma": "^6.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.0"
+  }
+}
+
+===== TURBO.JSON =====
+{
+"$schema": "https://turbo.build/schema.json",
+"tasks": {
+"build": {
+"dependsOn": ["^build"],
+"outputs": [
+".next/**",
+"dist/**"
+]
+},
+"dev": {
+"cache": false,
+"persistent": true
+},
+"lint": {},
+"test": {}
+}
+}
+
+===== CONFIG FILES =====
+./services/api/node_modules/tsconfig-paths-webpack-plugin/.tool-versions
