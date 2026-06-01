@@ -117,7 +117,7 @@ export class PaymentsService {
         id: payment.orderId,
       },
       data: {
-        status: 'PAID',
+        status: 'PENDING',
       },
     });
 

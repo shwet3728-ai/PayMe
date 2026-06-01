@@ -1,21 +1,29 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
 
 export default function OwnerProductsPage() {
-  const searchParams = useSearchParams();
-  const shopId = searchParams.get('shopId')!;
-
+  const [shopId, setShopId] = useState('');
   const [products, setProducts] = useState<any[]>([]);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
 
+  useEffect(() => {
+    const params = new URLSearchParams(
+      window.location.search
+    );
+
+    setShopId(params.get('shopId') || '');
+  }, []);
+
   async function loadProducts() {
+    if (!shopId) return;
+
     const res = await fetch(
       `http://localhost:3001/api/products/shop/${shopId}`
     );
+
     setProducts(await res.json());
   }
 
@@ -42,6 +50,7 @@ export default function OwnerProductsPage() {
     setName('');
     setDescription('');
     setPrice('');
+
     loadProducts();
   }
 
@@ -57,7 +66,9 @@ export default function OwnerProductsPage() {
   }
 
   useEffect(() => {
-    if (shopId) loadProducts();
+    if (shopId) {
+      loadProducts();
+    }
   }, [shopId]);
 
   return (
@@ -100,13 +111,22 @@ export default function OwnerProductsPage() {
 
       <div className="space-y-4">
         {products.map((p) => (
-          <div key={p.id} className="border p-4">
-            <h2 className="font-bold">{p.name}</h2>
+          <div
+            key={p.id}
+            className="border p-4"
+          >
+            <h2 className="font-bold">
+              {p.name}
+            </h2>
+
             <p>{p.description}</p>
+
             <p>₹{p.price}</p>
 
             <button
-              onClick={() => deleteProduct(p.id)}
+              onClick={() =>
+                deleteProduct(p.id)
+              }
               className="mt-2 bg-red-500 text-white px-3 py-1"
             >
               Delete
