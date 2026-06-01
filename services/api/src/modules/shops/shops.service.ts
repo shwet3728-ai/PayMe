@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import * as QRCode from 'qrcode';
 
 @Injectable()
 export class ShopsService {
@@ -42,5 +43,17 @@ export class ShopsService {
         products: true,
       },
     });
+  }
+
+  async getShopQr(shopId: string) {
+    const queueUrl = `http://localhost:3000/shop/${shopId}/queue`;
+
+    const qrCode = await QRCode.toDataURL(queueUrl);
+
+    return {
+      shopId,
+      queueUrl,
+      qrCode,
+    };
   }
 }

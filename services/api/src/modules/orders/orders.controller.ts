@@ -44,6 +44,15 @@ export class OrdersController {
     );
   }
 
+  @Get('shop/:shopId/current')
+  getCurrentToken(
+    @Param('shopId') shopId: string,
+  ) {
+    return this.ordersService.getCurrentToken(
+      shopId,
+    );
+  }
+
   @Get('shop/:shopId')
   getShopOrders(
     @Param('shopId') shopId: string,

@@ -104,6 +104,35 @@ export class OrdersService {
     };
   }
 
+  async getCurrentToken(
+    shopId: string,
+  ) {
+    const order =
+      await this.prisma.order.findFirst({
+        where: {
+          shopId,
+          status: {
+            not: 'DELIVERED',
+          },
+        },
+        orderBy: {
+          tokenNumber: 'asc',
+        },
+      });
+
+    if (!order) {
+      return {
+        tokenNumber: null,
+        status: 'NO_ACTIVE_ORDERS',
+      };
+    }
+
+    return {
+      tokenNumber: order.tokenNumber,
+      status: order.status,
+    };
+  }
+
   async getShopOrders(
     shopId: string,
   ) {
