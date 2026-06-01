@@ -1,12 +1,13 @@
 'use client';
 
+import type { Product } from '@/lib/api';
 import OrderButton from './OrderButton';
 
 export default function ShopProducts({
   products,
   shopId,
 }: {
-  products: any[];
+  products: Product[];
   shopId: string;
 }) {
   return (
@@ -34,6 +35,7 @@ export default function ShopProducts({
             <OrderButton
               productId={p.id}
               shopId={shopId}
+              price={p.price}
             />
           </div>
         ))}

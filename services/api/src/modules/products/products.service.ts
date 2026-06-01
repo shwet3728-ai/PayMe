@@ -7,7 +7,31 @@ export class ProductsService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async createProduct(shopId: string, name: string, description: string, price: number) {
+  async createProduct(
+    ownerId: string,
+    shopId: string,
+    name: string,
+    description: string,
+    price: number,
+  ) {
+    const shop = await this.prisma.shop.findFirst({
+      where: { id: shopId, ownerId },
+    });
+
+    if (!shop) {
+      return {
+        success: false,
+        message: 'Shop not found for this owner',
+      };
+    }
+
+    if (!name || !price || price <= 0) {
+      return {
+        success: false,
+        message: 'Name and valid price are required',
+      };
+    }
+
     return {
       success: true,
       product: await this.prisma.product.create({
@@ -16,7 +40,25 @@ export class ProductsService {
     };
   }
 
-  async updateProduct(productId: string, name: string, description: string, price: number) {
+  async updateProduct(
+    ownerId: string,
+    productId: string,
+    name: string,
+    description: string,
+    price: number,
+  ) {
+    const product = await this.prisma.product.findUnique({
+      where: { id: productId },
+      include: { shop: true },
+    });
+
+    if (!product || product.shop.ownerId !== ownerId) {
+      return {
+        success: false,
+        message: 'Product not found for this owner',
+      };
+    }
+
     return {
       success: true,
       product: await this.prisma.product.update({
@@ -26,9 +68,22 @@ export class ProductsService {
     };
   }
 
-  async deleteProduct(productId: string) {
-    await this.prisma.product.delete({
+  async deleteProduct(ownerId: string, productId: string) {
+    const product = await this.prisma.product.findUnique({
       where: { id: productId },
+      include: { shop: true },
+    });
+
+    if (!product || product.shop.ownerId !== ownerId) {
+      return {
+        success: false,
+        message: 'Product not found for this owner',
+      };
+    }
+
+    await this.prisma.product.update({
+      where: { id: productId },
+      data: { isAvailable: false },
     });
 
     return { success: true };
@@ -36,7 +91,7 @@ export class ProductsService {
 
   async getProductsByShop(shopId: string) {
     return this.prisma.product.findMany({
-      where: { shopId },
+      where: { shopId, isAvailable: true },
       orderBy: { createdAt: 'desc' },
     });
   }

@@ -10,8 +10,13 @@ export default function LoginPage() {
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
 
   async function sendOtp() {
+    setLoading(true);
+    setMessage('');
+
     const res = await fetch(
       `${API}/auth/send-otp`,
       {
@@ -25,11 +30,20 @@ export default function LoginPage() {
 
     const data = await res.json();
 
-    alert(`OTP: ${data.otp}`);
-    setOtpSent(true);
+    if (res.ok && data.success) {
+      setMessage(data.otp ? `Demo OTP: ${data.otp}` : 'OTP sent.');
+      setOtpSent(true);
+    } else {
+      setMessage(data.message || 'Unable to send OTP.');
+    }
+
+    setLoading(false);
   }
 
   async function verifyOtp() {
+    setLoading(true);
+    setMessage('');
+
     const res = await fetch(
       `${API}/auth/verify-otp`,
       {
@@ -46,24 +60,30 @@ export default function LoginPage() {
 
     const data = await res.json();
 
-    if (data.success) {
+    if (res.ok && data.success) {
       localStorage.setItem(
         'token',
         data.accessToken,
       );
 
-      alert('Login successful');
       router.push('/');
     } else {
-      alert('Invalid OTP');
+      setMessage(data.message || 'Invalid OTP');
     }
+
+    setLoading(false);
   }
 
   return (
-    <main className="min-h-screen p-8">
-      <h1 className="text-3xl font-bold mb-4">
-        Login
-      </h1>
+    <main className="min-h-screen bg-gray-50 p-6 sm:p-8">
+      <section className="mx-auto max-w-md rounded-lg border bg-white p-6">
+        <h1 className="text-3xl font-bold mb-2">
+          Login
+        </h1>
+
+        <p className="mb-6 text-gray-600">
+          Customers and shop owners use the same OTP login for this MVP.
+        </p>
 
       <input
         value={phone}
@@ -71,15 +91,16 @@ export default function LoginPage() {
           setPhone(e.target.value)
         }
         placeholder="Phone Number"
-        className="border p-2 mr-2"
+        className="mb-3 w-full rounded border p-2"
       />
 
       {!otpSent ? (
         <button
           onClick={sendOtp}
-          className="border px-4 py-2"
+          disabled={loading || !phone}
+          className="w-full rounded bg-black px-4 py-2 text-white disabled:opacity-50"
         >
-          Send OTP
+          {loading ? 'Sending...' : 'Send OTP'}
         </button>
       ) : (
         <div className="mt-4">
@@ -89,17 +110,25 @@ export default function LoginPage() {
               setOtp(e.target.value)
             }
             placeholder="Enter OTP"
-            className="border p-2 mr-2"
+            className="mb-3 w-full rounded border p-2"
           />
 
           <button
             onClick={verifyOtp}
-            className="border px-4 py-2"
+            disabled={loading || !otp}
+            className="w-full rounded bg-black px-4 py-2 text-white disabled:opacity-50"
           >
-            Verify OTP
+            {loading ? 'Verifying...' : 'Verify OTP'}
           </button>
         </div>
       )}
+
+        {message && (
+          <p className="mt-4 rounded border bg-gray-50 p-3 text-sm">
+            {message}
+          </p>
+        )}
+      </section>
     </main>
   );
 }

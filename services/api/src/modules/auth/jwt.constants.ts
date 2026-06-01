@@ -1,3 +1,3 @@
 export const jwtConstants = {
-  secret: 'payme-super-secret-key',
+  secret: process.env.JWT_SECRET || 'payme-development-secret',
 };

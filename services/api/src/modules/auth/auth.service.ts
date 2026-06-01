@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { randomInt } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -10,7 +11,8 @@ export class AuthService {
   ) {}
 
   async sendOtp(phone: string) {
-    const otp = '123456';
+    const normalizedPhone = phone.trim();
+    const otp = String(randomInt(100000, 1000000));
 
     const expiresAt = new Date(
       Date.now() + 5 * 60 * 1000,
@@ -18,7 +20,7 @@ export class AuthService {
 
     await this.prisma.otpVerification.create({
       data: {
-        phone,
+        phone: normalizedPhone,
         otp,
         expiresAt,
       },
@@ -27,17 +29,25 @@ export class AuthService {
     return {
       success: true,
       message: 'OTP sent successfully',
-      otp,
+      otp:
+        process.env.NODE_ENV === 'production' && process.env.OTP_DEBUG !== 'true'
+          ? undefined
+          : otp,
     };
   }
 
   async verifyOtp(phone: string, otp: string) {
+    const normalizedPhone = phone.trim();
+
     const record =
       await this.prisma.otpVerification.findFirst({
         where: {
-          phone,
+          phone: normalizedPhone,
           otp,
           verified: false,
+          expiresAt: {
+            gt: new Date(),
+          },
         },
         orderBy: {
           createdAt: 'desc',
@@ -58,12 +68,12 @@ export class AuthService {
 
     let user =
       await this.prisma.user.findUnique({
-        where: { phone },
+        where: { phone: normalizedPhone },
       });
 
     if (!user) {
       user = await this.prisma.user.create({
-        data: { phone },
+        data: { phone: normalizedPhone },
       });
     }
 

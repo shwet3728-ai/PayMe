@@ -1,22 +1,24 @@
 'use client';
 
+import { API, authHeaders } from '@/lib/api';
+
 export default function UpdateStatusButton({
   orderId,
   status,
+  onUpdated,
 }: {
   orderId: string;
   status: string;
+  onUpdated?: () => void;
 }) {
   async function updateStatus() {
-    const token = localStorage.getItem('token');
-
     const res = await fetch(
-      `http://localhost:3001/api/orders/${orderId}/status`,
+      `${API}/orders/${orderId}/status`,
       {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          ...authHeaders(),
         },
         body: JSON.stringify({
           status,
@@ -26,9 +28,12 @@ export default function UpdateStatusButton({
 
     const data = await res.json();
 
-    alert(JSON.stringify(data));
+    if (!res.ok || !data.success) {
+      alert(data.message || 'Unable to update order status');
+      return;
+    }
 
-    window.location.reload();
+    onUpdated?.();
   }
 
   return (

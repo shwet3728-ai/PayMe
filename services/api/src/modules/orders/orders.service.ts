@@ -25,6 +25,20 @@ export class OrdersService {
       };
     }
 
+    if (product.shopId !== shopId || !product.isAvailable) {
+      return {
+        success: false,
+        message: 'Product is not available for this shop',
+      };
+    }
+
+    if (!quantity || quantity < 1) {
+      return {
+        success: false,
+        message: 'Quantity must be at least 1',
+      };
+    }
+
     const lastOrder =
       await this.prisma.order.findFirst({
         where: { shopId },
@@ -69,6 +83,7 @@ export class OrdersService {
   }
 
   async updateStatus(
+    ownerId: string,
     orderId: string,
     status: string,
   ) {
@@ -85,6 +100,30 @@ export class OrdersService {
       return {
         success: false,
         message: 'Invalid status',
+      };
+    }
+
+    const existingOrder =
+      await this.prisma.order.findUnique({
+        where: {
+          id: orderId,
+        },
+        include: {
+          shop: true,
+        },
+      });
+
+    if (!existingOrder) {
+      return {
+        success: false,
+        message: 'Order not found',
+      };
+    }
+
+    if (existingOrder.shop.ownerId !== ownerId) {
+      return {
+        success: false,
+        message: 'You cannot update this order',
       };
     }
 
@@ -133,15 +172,49 @@ export class OrdersService {
     };
   }
 
-  async getShopOrders(
+  async getPublicQueue(
     shopId: string,
   ) {
     return this.prisma.order.findMany({
       where: {
         shopId,
+        status: {
+          not: 'DELIVERED',
+        },
+      },
+      select: {
+        tokenNumber: true,
+        status: true,
+      },
+      orderBy: {
+        tokenNumber: 'asc',
+      },
+    });
+  }
+
+  async getShopOrders(
+    ownerId: string,
+    shopId: string,
+  ) {
+    const shop = await this.prisma.shop.findFirst({
+      where: { id: shopId, ownerId },
+    });
+
+    if (!shop) {
+      return [];
+    }
+
+    return this.prisma.order.findMany({
+      where: {
+        shopId,
       },
       include: {
-        items: true,
+        items: {
+          include: {
+            product: true,
+          },
+        },
+        payment: true,
       },
       orderBy: {
         tokenNumber: 'asc',
@@ -157,7 +230,12 @@ export class OrdersService {
         customerId,
       },
       include: {
-        items: true,
+        items: {
+          include: {
+            product: true,
+          },
+        },
+        payment: true,
       },
       orderBy: {
         createdAt: 'desc',

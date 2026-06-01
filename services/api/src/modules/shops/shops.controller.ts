@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  Patch,
   Post,
   Req,
   UseGuards,
@@ -31,6 +32,19 @@ export class ShopsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Patch('my-shop')
+  updateShop(
+    @Req() req: any,
+    @Body() body: any,
+  ) {
+    return this.shopsService.updateShop(
+      req.user.userId,
+      body.name,
+      body.description,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('my-shops')
   getMyShops(
     @Req() req: any,
@@ -38,6 +52,11 @@ export class ShopsController {
     return this.shopsService.getMyShops(
       req.user.userId,
     );
+  }
+
+  @Get()
+  getAllShops() {
+    return this.shopsService.getAllShops();
   }
 
   @Get(':id/qr')

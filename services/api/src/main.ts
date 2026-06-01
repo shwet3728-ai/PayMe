@@ -1,29 +1,33 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
+import { getCorsOrigins, validateEnv } from './config/validate-env';
 
 async function bootstrap() {
-const app = await NestFactory.create(AppModule);
+  validateEnv();
 
-app.enableCors({
-origin: true,
-credentials: true,
-});
+  const app = await NestFactory.create(AppModule);
 
-app.setGlobalPrefix('api');
+  app.enableCors({
+    origin: getCorsOrigins(),
+    credentials: true,
+  });
 
-app.useGlobalPipes(
-new ValidationPipe({
-whitelist: true,
-transform: true,
-}),
-);
+  app.setGlobalPrefix('api');
 
-const port = process.env.PORT || 3001;
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
 
-await app.listen(port);
+  const port = process.env.PORT || 3001;
 
-console.log(`🚀 PayMe API running on port ${port}`);
+  await app.listen(port);
+
+  console.log(`PayMe API running on port ${port}`);
 }
 
 bootstrap();

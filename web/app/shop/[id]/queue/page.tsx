@@ -1,3 +1,5 @@
+import { API, statusClass } from '@/lib/api';
+
 type Order = {
   tokenNumber: number;
   status: string;
@@ -5,7 +7,7 @@ type Order = {
 
 async function getQueue(shopId: string) {
   const res = await fetch(
-    `http://localhost:3001/api/orders/shop/${shopId}`,
+    `${API}/orders/shop/${shopId}/queue`,
     { cache: 'no-store' },
   );
 
@@ -14,7 +16,7 @@ async function getQueue(shopId: string) {
 
 async function getCurrent(shopId: string) {
   const res = await fetch(
-    `http://localhost:3001/api/orders/shop/${shopId}/current`,
+    `${API}/orders/shop/${shopId}/current`,
     { cache: 'no-store' },
   );
 
@@ -35,7 +37,7 @@ export default async function QueuePage({
     <main className="min-h-screen p-8">
       <div className="bg-yellow-100 border rounded p-4 mb-6">
         <h1 className="text-3xl font-bold">
-          🔔 Now Serving: Token #{current.tokenNumber}
+          Now Serving: {current.tokenNumber ? `Token #${current.tokenNumber}` : 'No active orders'}
         </h1>
         <p>Status: {current.status}</p>
       </div>
@@ -46,7 +48,12 @@ export default async function QueuePage({
             key={order.tokenNumber}
             className="border rounded p-3"
           >
-            🎟 Token #{order.tokenNumber} — {order.status}
+            <span className="font-semibold">Token #{order.tokenNumber}</span>
+            <span
+              className={`ml-3 inline-flex rounded-full border px-3 py-1 text-sm font-semibold ${statusClass(order.status)}`}
+            >
+              {order.status}
+            </span>
           </div>
         ))}
       </div>

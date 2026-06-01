@@ -10,13 +10,32 @@ export class PaymentsService {
   constructor(
     private readonly prisma: PrismaService,
   ) {
+    if (
+      !process.env.RAZORPAY_KEY_ID ||
+      !process.env.RAZORPAY_KEY_SECRET
+    ) {
+      console.warn(
+        'Razorpay credentials are missing. Payment creation will fail.',
+      );
+    }
+
     this.razorpay = new Razorpay({
       key_id: process.env.RAZORPAY_KEY_ID!,
       key_secret: process.env.RAZORPAY_KEY_SECRET!,
     });
   }
 
-  async createPayment(orderId: string) {
+  async createPayment(customerId: string, orderId: string) {
+    if (
+      !process.env.RAZORPAY_KEY_ID ||
+      !process.env.RAZORPAY_KEY_SECRET
+    ) {
+      return {
+        success: false,
+        message: 'Payment gateway is not configured',
+      };
+    }
+
     const order = await this.prisma.order.findUnique({
       where: {
         id: orderId,
@@ -27,6 +46,32 @@ export class PaymentsService {
       return {
         success: false,
         message: 'Order not found',
+      };
+    }
+
+    if (order.customerId !== customerId) {
+      return {
+        success: false,
+        message: 'You cannot pay for this order',
+      };
+    }
+
+    if (order.totalAmount <= 0) {
+      return {
+        success: false,
+        message: 'Invalid order amount',
+      };
+    }
+
+    const existingSuccessPayment =
+      await this.prisma.payment.findUnique({
+        where: { orderId },
+      });
+
+    if (existingSuccessPayment?.status === 'SUCCESS') {
+      return {
+        success: false,
+        message: 'Order is already paid',
       };
     }
 
@@ -67,6 +112,13 @@ export class PaymentsService {
     razorpay_payment_id: string;
     razorpay_signature: string;
   }) {
+    if (!process.env.RAZORPAY_KEY_SECRET) {
+      return {
+        success: false,
+        message: 'Payment gateway is not configured',
+      };
+    }
+
     const generatedSignature = crypto
       .createHmac(
         'sha256',

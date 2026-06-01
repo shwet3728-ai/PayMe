@@ -1,20 +1,43 @@
 'use client';
 
-import { API } from '@/lib/api';
+import { useRouter } from 'next/navigation';
+import { API, authHeaders, formatCurrency } from '@/lib/api';
 
 declare global {
   interface Window {
-    Razorpay: any;
+    Razorpay?: new (options: RazorpayOptions) => {
+      open: () => void;
+    };
   }
 }
+
+type RazorpayResponse = {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+};
+
+type RazorpayOptions = {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  order_id: string;
+  handler: (response: RazorpayResponse) => Promise<void>;
+};
 
 export default function OrderButton({
   productId,
   shopId,
+  price,
 }: {
   productId: string;
   shopId: string;
+  price: number;
 }) {
+  const router = useRouter();
+
   async function order() {
     const token = localStorage.getItem('token');
 
@@ -27,7 +50,7 @@ export default function OrderButton({
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        ...authHeaders(),
       },
       body: JSON.stringify({
         shopId,
@@ -38,8 +61,8 @@ export default function OrderButton({
 
     const orderData = await orderRes.json();
 
-    if (!orderData.success) {
-      alert('Order creation failed');
+    if (!orderRes.ok || !orderData.success) {
+      alert(orderData.message || 'Order creation failed');
       return;
     }
 
@@ -47,6 +70,7 @@ export default function OrderButton({
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...authHeaders(),
       },
       body: JSON.stringify({
         orderId: orderData.order.id,
@@ -54,6 +78,16 @@ export default function OrderButton({
     });
 
     const paymentData = await paymentRes.json();
+
+    if (!paymentRes.ok || !paymentData.success) {
+      alert(paymentData.message || 'Payment creation failed');
+      return;
+    }
+
+    if (!window.Razorpay) {
+      alert('Payment checkout is still loading. Please try again.');
+      return;
+    }
 
     const options = {
       key: paymentData.key,
@@ -63,7 +97,7 @@ export default function OrderButton({
       description: 'Order Payment',
       order_id: paymentData.razorpayOrderId,
 
-      handler: async function (response: any) {
+      handler: async function (response: RazorpayResponse) {
         const verifyRes = await fetch(`${API}/payments/verify`, {
           method: 'POST',
           headers: {
@@ -74,11 +108,11 @@ export default function OrderButton({
 
         const verifyData = await verifyRes.json();
 
-        if (verifyData.success) {
+        if (verifyRes.ok && verifyData.success) {
           alert('Payment Successful');
-          window.location.href = '/orders';
+          router.push('/orders');
         } else {
-          alert('Verification Failed');
+          alert(verifyData.message || 'Verification Failed');
         }
       },
     };
@@ -92,7 +126,7 @@ export default function OrderButton({
       className="mt-3 rounded bg-black text-white px-4 py-2"
       onClick={order}
     >
-      Pay Now
+      Pay {formatCurrency(price)}
     </button>
   );
 }

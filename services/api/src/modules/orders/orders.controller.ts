@@ -35,10 +35,12 @@ export class OrdersController {
   @UseGuards(JwtAuthGuard)
   @Patch(':id/status')
   updateStatus(
+    @Req() req: any,
     @Param('id') id: string,
     @Body() body: { status: string },
   ) {
     return this.ordersService.updateStatus(
+      req.user.userId,
       id,
       body.status,
     );
@@ -53,11 +55,23 @@ export class OrdersController {
     );
   }
 
+  @Get('shop/:shopId/queue')
+  getPublicQueue(
+    @Param('shopId') shopId: string,
+  ) {
+    return this.ordersService.getPublicQueue(
+      shopId,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('shop/:shopId')
   getShopOrders(
+    @Req() req: any,
     @Param('shopId') shopId: string,
   ) {
     return this.ordersService.getShopOrders(
+      req.user.userId,
       shopId,
     );
   }
