@@ -12,7 +12,7 @@ export default function Home() {
       </p>
 
       <Link
-        href="/shop/cmpsvawq40001s56250slr71b"
+        href="/shop/cmpvq7wvv0008hi24c52vdla6"
         className="inline-block mt-6 px-4 py-2 border rounded"
       >
         Open Test Shop
