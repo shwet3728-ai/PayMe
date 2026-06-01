@@ -1,5 +1,7 @@
 'use client';
 
+import { API } from '@/lib/api';
+
 declare global {
   interface Window {
     Razorpay: any;
@@ -14,106 +16,74 @@ export default function OrderButton({
   shopId: string;
 }) {
   async function order() {
-    const token =
-      localStorage.getItem('token');
+    const token = localStorage.getItem('token');
 
     if (!token) {
       alert('Please login first');
       return;
     }
 
-    const orderRes = await fetch(
-      'http://localhost:3001/api/orders/create',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          shopId,
-          productId,
-          quantity: 1,
-        }),
+    const orderRes = await fetch(`${API}/orders/create`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
       },
-    );
+      body: JSON.stringify({
+        shopId,
+        productId,
+        quantity: 1,
+      }),
+    });
 
-    const orderData =
-      await orderRes.json();
+    const orderData = await orderRes.json();
 
     if (!orderData.success) {
       alert('Order creation failed');
       return;
     }
 
-    const paymentRes = await fetch(
-      'http://localhost:3001/api/payments/create',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          orderId: orderData.order.id,
-        }),
+    const paymentRes = await fetch(`${API}/payments/create`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
-    );
+      body: JSON.stringify({
+        orderId: orderData.order.id,
+      }),
+    });
 
-    const paymentData =
-      await paymentRes.json();
+    const paymentData = await paymentRes.json();
 
     const options = {
       key: paymentData.key,
-      amount:
-        paymentData.amount * 100,
+      amount: paymentData.amount * 100,
       currency: 'INR',
       name: 'PayMe',
       description: 'Order Payment',
-      order_id:
-        paymentData.razorpayOrderId,
+      order_id: paymentData.razorpayOrderId,
 
-      handler: async function (
-        response: any,
-      ) {
-        const verifyRes =
-          await fetch(
-            'http://localhost:3001/api/payments/verify',
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type':
-                  'application/json',
-              },
-              body: JSON.stringify(
-                response,
-              ),
-            },
-          );
+      handler: async function (response: any) {
+        const verifyRes = await fetch(`${API}/payments/verify`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(response),
+        });
 
-        const verifyData =
-          await verifyRes.json();
+        const verifyData = await verifyRes.json();
 
-        if (
-          verifyData.success
-        ) {
-          alert(
-            'Payment Successful',
-          );
-          window.location.href =
-            '/orders';
+        if (verifyData.success) {
+          alert('Payment Successful');
+          window.location.href = '/orders';
         } else {
-          alert(
-            'Verification Failed',
-          );
+          alert('Verification Failed');
         }
       },
     };
 
-    const razorpay =
-      new window.Razorpay(
-        options,
-      );
-
+    const razorpay = new window.Razorpay(options);
     razorpay.open();
   }
 
