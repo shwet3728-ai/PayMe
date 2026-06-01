@@ -8,14 +8,15 @@ export default function UpdateStatusButton({
   status: string;
 }) {
   async function updateStatus() {
+    const token = localStorage.getItem('token');
+
     const res = await fetch(
       `http://localhost:3001/api/orders/${orderId}/status`,
       {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          Authorization:
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXBzOXgzOTMwMDAxczU1ZzJ6YWNya3NvIiwicGhvbmUiOiI5ODc2NTQzMjEwIiwicm9sZSI6IkNVU1RPTUVSIiwiaWF0IjoxNzgwMTQ3NDc3LCJleHAiOjE3ODA3NTIyNzd9.n77bzWz8FX284kn559LDMmv7yoLcobHRXE2iM-XeEj4',
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           status,

@@ -81,6 +81,8 @@ model Product {
 
 model Order {
   id     String @id @default(cuid())
+
+  tokenNumber Int @default(0)
   status String @default("PENDING")
 
   customerId String

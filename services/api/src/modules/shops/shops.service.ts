@@ -5,7 +5,6 @@ import { PrismaService } from '../../prisma/prisma.service';
 export class ShopsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // 🟢 ONLY ONE SHOP PER USER
   async createShop(ownerId: string, name: string, description: string) {
     const existingShop = await this.prisma.shop.findFirst({
       where: { ownerId },
@@ -39,6 +38,9 @@ export class ShopsService {
   async getShopById(shopId: string) {
     return this.prisma.shop.findUnique({
       where: { id: shopId },
+      include: {
+        products: true,
+      },
     });
   }
 }

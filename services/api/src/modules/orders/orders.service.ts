@@ -25,6 +25,17 @@ export class OrdersService {
       };
     }
 
+    const lastOrder =
+      await this.prisma.order.findFirst({
+        where: { shopId },
+        orderBy: {
+          tokenNumber: 'desc',
+        },
+      });
+
+    const nextToken =
+      (lastOrder?.tokenNumber || 0) + 1;
+
     const totalAmount =
       product.price * quantity;
 
@@ -33,6 +44,7 @@ export class OrdersService {
         data: {
           customerId,
           shopId,
+          tokenNumber: nextToken,
           totalAmount,
           items: {
             create: [
@@ -51,6 +63,7 @@ export class OrdersService {
 
     return {
       success: true,
+      tokenNumber: nextToken,
       order,
     };
   }
@@ -59,6 +72,22 @@ export class OrdersService {
     orderId: string,
     status: string,
   ) {
+    const allowedStatuses = [
+      'PENDING',
+      'PREPARING',
+      'READY',
+      'DELIVERED',
+    ];
+
+    if (
+      !allowedStatuses.includes(status)
+    ) {
+      return {
+        success: false,
+        message: 'Invalid status',
+      };
+    }
+
     const order =
       await this.prisma.order.update({
         where: {
@@ -86,7 +115,7 @@ export class OrdersService {
         items: true,
       },
       orderBy: {
-        createdAt: 'desc',
+        tokenNumber: 'asc',
       },
     });
   }

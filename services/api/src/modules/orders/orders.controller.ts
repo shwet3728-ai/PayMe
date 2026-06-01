@@ -32,6 +32,7 @@ export class OrdersController {
     );
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id/status')
   updateStatus(
     @Param('id') id: string,

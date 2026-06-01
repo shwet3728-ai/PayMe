@@ -1,5 +1,6 @@
 type Order = {
   id: string;
+  tokenNumber: number;
   status: string;
   totalAmount: number;
 };
@@ -49,9 +50,9 @@ export default async function OrdersPage() {
             key={order.id}
             className="border rounded-lg p-4"
           >
-            <p>
-              Order ID: {order.id}
-            </p>
+            <h2 className="text-2xl font-bold">
+              🎟 Token #{order.tokenNumber}
+            </h2>
 
             <span
               className={`inline-block px-3 py-1 rounded mt-2 ${getStatusColor(order.status)}`}
@@ -59,8 +60,12 @@ export default async function OrdersPage() {
               {order.status}
             </span>
 
-            <p className="mt-2">
+            <p className="mt-3 text-lg">
               ₹{order.totalAmount}
+            </p>
+
+            <p className="text-sm text-gray-500 mt-2">
+              Order ID: {order.id}
             </p>
           </div>
         ))}
