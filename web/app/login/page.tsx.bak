@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { API } from '@/lib/api';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -13,7 +12,7 @@ export default function LoginPage() {
 
   async function sendOtp() {
     const res = await fetch(
-      `${API}/auth/send-otp`,
+      'http://localhost:3001/api/auth/send-otp',
       {
         method: 'POST',
         headers: {
@@ -26,12 +25,13 @@ export default function LoginPage() {
     const data = await res.json();
 
     alert(`OTP: ${data.otp}`);
+
     setOtpSent(true);
   }
 
   async function verifyOtp() {
     const res = await fetch(
-      `${API}/auth/verify-otp`,
+      'http://localhost:3001/api/auth/verify-otp',
       {
         method: 'POST',
         headers: {
@@ -53,6 +53,7 @@ export default function LoginPage() {
       );
 
       alert('Login successful');
+
       router.push('/');
     } else {
       alert('Invalid OTP');

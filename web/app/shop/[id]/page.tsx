@@ -1,4 +1,5 @@
 import ShopProducts from '@/components/ShopProducts';
+import { API } from '@/lib/api';
 
 type Props = {
   params: Promise<{
@@ -8,10 +9,8 @@ type Props = {
 
 async function getShop(id: string) {
   const res = await fetch(
-    `http://localhost:3001/api/shops/${id}`,
-    {
-      cache: 'no-store',
-    }
+    `${API}/shops/${id}`,
+    { cache: 'no-store' }
   );
 
   return res.json();
@@ -19,10 +18,8 @@ async function getShop(id: string) {
 
 async function getQr(id: string) {
   const res = await fetch(
-    `http://localhost:3001/api/shops/${id}/qr`,
-    {
-      cache: 'no-store',
-    }
+    `${API}/shops/${id}/qr`,
+    { cache: 'no-store' }
   );
 
   return res.json();
@@ -30,10 +27,8 @@ async function getQr(id: string) {
 
 async function getProducts(id: string) {
   const res = await fetch(
-    `http://localhost:3001/api/products/shop/${id}`,
-    {
-      cache: 'no-store',
-    }
+    `${API}/products/shop/${id}`,
+    { cache: 'no-store' }
   );
 
   return res.json();
